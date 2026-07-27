@@ -73,3 +73,12 @@ button:hover, button:focus-visible {
   background: #fff;
   border-left: 12px solid var(--color-seccion);
 }
+
+.pantalla-guia { display: flex; flex-direction: column; min-height: 100vh; }
+.titulo-paso { font-size: var(--texto-grupo); margin: 24px 0; }
+.cuerpo-paso { flex: 1; font-size: var(--texto-base); line-height: 1.6; }
+.cuerpo-paso img { max-width: 100%; max-height: 50vh; border-radius: var(--radio); box-shadow: var(--sombra); }
+.pie-guia { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 24px 0; }
+.boton-anterior, .boton-siguiente { min-height: 100px; min-width: 260px; font-size: 32px; font-weight: 700; background: #fff; }
+.boton-siguiente { background: var(--color-seccion, #2E7D32); color: #fff; }
+.indicador-paso { font-size: 28px; color: #555; }
