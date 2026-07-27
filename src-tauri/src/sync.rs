@@ -85,6 +85,142 @@ pub fn reemplazar_contenido(dir_contenido: &Path, dir_nuevo: &Path) -> Result<()
     }
 }
 
+use std::path::PathBuf;
+
+#[derive(serde::Serialize, Clone)]
+pub struct EstadoSync {
+    pub estado: String,
+    pub sha: Option<String>,
+    pub version: Option<u64>,
+    pub fecha: Option<String>,
+    pub detalle: Option<String>,
+}
+
+pub fn extraer_zip(bytes: &[u8], destino: &Path) -> Result<PathBuf, String> {
+    let mut archivo =
+        zip::ZipArchive::new(std::io::Cursor::new(bytes)).map_err(|e| e.to_string())?;
+    archivo.extract(destino).map_err(|e| e.to_string())?;
+    fs::read_dir(destino)
+        .map_err(|e| e.to_string())?
+        .filter_map(|e| e.ok())
+        .map(|e| e.path())
+        .find(|p| p.is_dir())
+        .ok_or_else(|| "zip sin carpeta raíz".to_string())
+}
+
+async fn obtener_sha_remoto() -> Result<String, String> {
+    let url = format!(
+        "https://api.github.com/repos/{}/{}/commits/main",
+        crate::config::GITHUB_OWNER,
+        crate::config::REPO_CONTENIDO
+    );
+    let resp = reqwest::Client::new()
+        .get(&url)
+        .header("User-Agent", "entorno-papa")
+        .send()
+        .await
+        .map_err(|e| e.to_string())?
+        .error_for_status()
+        .map_err(|e| e.to_string())?;
+    let v: serde_json::Value = resp.json().await.map_err(|e| e.to_string())?;
+    v["sha"]
+        .as_str()
+        .map(String::from)
+        .ok_or_else(|| "respuesta de GitHub sin sha".to_string())
+}
+
+async fn descargar_zip_remoto() -> Result<Vec<u8>, String> {
+    let url = format!(
+        "https://codeload.github.com/{}/{}/zip/refs/heads/main",
+        crate::config::GITHUB_OWNER,
+        crate::config::REPO_CONTENIDO
+    );
+    let resp = reqwest::Client::new()
+        .get(&url)
+        .header("User-Agent", "entorno-papa")
+        .send()
+        .await
+        .map_err(|e| e.to_string())?
+        .error_for_status()
+        .map_err(|e| e.to_string())?;
+    Ok(resp.bytes().await.map_err(|e| e.to_string())?.to_vec())
+}
+
+fn ruta_meta(app: &tauri::AppHandle) -> Result<PathBuf, String> {
+    use tauri::Manager;
+    Ok(app
+        .path()
+        .app_data_dir()
+        .map_err(|e| e.to_string())?
+        .join("contenido_meta.json"))
+}
+
+#[tauri::command]
+pub fn estado_sync(app: tauri::AppHandle) -> EstadoSync {
+    match ruta_meta(&app) {
+        Ok(ruta) => {
+            let meta = leer_meta(&ruta);
+            EstadoSync {
+                estado: if meta.sha.is_empty() { "sin_datos".into() } else { "sin_cambios".into() },
+                sha: Some(meta.sha),
+                version: Some(meta.version),
+                fecha: Some(meta.fecha),
+                detalle: None,
+            }
+        }
+        Err(e) => EstadoSync { estado: "error".into(), sha: None, version: None, fecha: None, detalle: Some(e) },
+    }
+}
+
+#[tauri::command]
+pub async fn sync_now(app: tauri::AppHandle) -> EstadoSync {
+    if cfg!(debug_assertions) {
+        return EstadoSync { estado: "dev".into(), sha: None, version: None, fecha: None, detalle: Some("sync desactivado en dev".into()) };
+    }
+    match sincronizar(&app).await {
+        Ok(estado) => estado,
+        Err(e) => {
+            log::warn!("sync falló: {e}");
+            EstadoSync { estado: "error".into(), sha: None, version: None, fecha: None, detalle: Some(e) }
+        }
+    }
+}
+
+async fn sincronizar(app: &tauri::AppHandle) -> Result<EstadoSync, String> {
+    use tauri::Manager;
+    let ruta_meta = ruta_meta(app)?;
+    let meta = leer_meta(&ruta_meta);
+
+    let sha = obtener_sha_remoto().await?;
+    if sha == meta.sha {
+        return Ok(EstadoSync {
+            estado: "sin_cambios".into(),
+            sha: Some(sha), version: Some(meta.version), fecha: Some(meta.fecha), detalle: None,
+        });
+    }
+
+    let bytes = descargar_zip_remoto().await?;
+    let temporal = app.path().app_data_dir().map_err(|e| e.to_string())?.join("descarga_tmp");
+    if temporal.exists() {
+        fs::remove_dir_all(&temporal).map_err(|e| e.to_string())?;
+    }
+    fs::create_dir_all(&temporal).map_err(|e| e.to_string())?;
+
+    let raiz_nueva = extraer_zip(&bytes, &temporal)?;
+    let version = validar_contenido(&raiz_nueva)?;
+
+    let dir_actual = crate::contenido::dir_contenido(app)?;
+    reemplazar_contenido(&dir_actual, &raiz_nueva)?;
+    let _ = fs::remove_dir_all(&temporal);
+
+    let fecha = chrono::Utc::now().to_rfc3339();
+    let nueva_meta = MetaContenido { sha: sha.clone(), version, fecha: fecha.clone() };
+    guardar_meta(&ruta_meta, &nueva_meta)?;
+
+    log::info!("contenido actualizado a v{version} ({sha})");
+    Ok(EstadoSync { estado: "actualizado".into(), sha: Some(sha), version: Some(version), fecha: Some(fecha), detalle: None })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -167,5 +303,22 @@ mod tests {
     fn meta_ausente_devuelve_default() {
         let leida = leer_meta(std::path::Path::new("Z:/no/existe/meta.json"));
         assert_eq!(leida.sha, "");
+    }
+
+    #[test]
+    fn extrae_zip_y_devuelve_raiz_interna() {
+        let mut buf = Vec::new();
+        {
+            let mut zw = zip::ZipWriter::new(std::io::Cursor::new(&mut buf));
+            let opciones: zip::write::SimpleFileOptions = Default::default();
+            zw.add_directory("repo-main/", opciones).unwrap();
+            zw.start_file("repo-main/manifest.json", opciones).unwrap();
+            std::io::Write::write_all(&mut zw, b"{}").unwrap();
+            zw.finish().unwrap();
+        }
+        let destino = tempfile::tempdir().unwrap();
+        let raiz = extraer_zip(&buf, destino.path()).unwrap();
+        assert!(raiz.ends_with("repo-main"));
+        assert!(raiz.join("manifest.json").is_file());
     }
 }

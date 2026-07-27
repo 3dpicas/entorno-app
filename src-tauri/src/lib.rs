@@ -18,7 +18,9 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             contenido::contenido_leer,
-            contenido::contenido_ruta
+            contenido::contenido_ruta,
+            sync::sync_now,
+            sync::estado_sync
         ])
         .run(tauri::generate_context!())
         .expect("error al arrancar la app");
