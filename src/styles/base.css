@@ -1,0 +1,75 @@
+* { box-sizing: border-box; margin: 0; }
+
+html, body { height: 100%; overflow-x: hidden; }
+
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size: var(--texto-base);
+  background: var(--fondo);
+  color: var(--tinta);
+}
+
+main { padding: 32px; }
+
+h1 { font-size: var(--texto-titulo); }
+h2.titulo-grupo { font-size: var(--texto-grupo); margin: 32px 0 16px; }
+
+button {
+  font: inherit;
+  cursor: pointer;
+  border: 4px solid transparent;
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+}
+
+button:hover, button:focus-visible {
+  border-color: var(--color-seccion);
+  outline: none;
+  filter: brightness(1.05);
+}
+
+.pantalla-inicio header { text-align: center; margin-bottom: 48px; }
+.reloj { font-size: var(--texto-grupo); color: #555; }
+
+.parrilla-secciones {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 32px;
+}
+
+.tarjeta-seccion {
+  min-height: 200px;
+  font-size: var(--texto-titulo);
+  font-weight: 700;
+  color: #fff;
+  background: var(--color-seccion);
+}
+
+.pantalla-seccion header {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  margin-bottom: 32px;
+}
+
+.boton-inicio {
+  min-height: 80px;
+  padding: 0 32px;
+  font-size: 28px;
+  font-weight: 700;
+  background: #fff;
+}
+
+.parrilla-tarjetas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+.tarjeta {
+  min-height: var(--alto-tarjeta);
+  font-size: 28px;
+  font-weight: 600;
+  background: #fff;
+  border-left: 12px solid var(--color-seccion);
+}

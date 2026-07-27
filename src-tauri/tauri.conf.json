@@ -21,7 +21,14 @@
       }
     ],
     "security": {
-      "csp": null
+      "csp": null,
+      "assetProtocol": {
+        "enable": true,
+        "scope": [
+          "$APPDATA/contenido/**",
+          "B:\\01_Proyectos\\Entorno-para-Papa\\entorno-contenido\\**"
+        ]
+      }
     }
   },
   "bundle": {

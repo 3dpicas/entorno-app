@@ -1,0 +1,11 @@
+:root {
+  --texto-base: 24px;
+  --texto-titulo: 40px;
+  --texto-grupo: 32px;
+  --alto-tarjeta: 120px;
+  --fondo: #FAFAF5;
+  --tinta: #1A1A1A;
+  --color-seccion: #455A64;
+  --radio: 16px;
+  --sombra: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
