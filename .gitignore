@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Generado por scripts/generar-icono.mjs a partir de recursos/icono.svg
+recursos/icono.png
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

@@ -29,8 +29,12 @@ fn leer_log_reciente(app: tauri::AppHandle) -> Vec<String> {
 pub fn run() {
     // El log va a fichero también en producción: es lo único que queda cuando
     // algo falla en el PC del padre, porque él nunca ve mensajes de error.
+    // Rotación acotada: el PC del padre puede pasar años sin que nadie mire el
+    // log, así que se limita a 1 MB por fichero y dos rotaciones guardadas.
     let log = tauri_plugin_log::Builder::new()
         .level(log::LevelFilter::Info)
+        .max_file_size(1_000_000)
+        .rotation_strategy(tauri_plugin_log::RotationStrategy::KeepSome(2))
         .target(tauri_plugin_log::Target::new(
             tauri_plugin_log::TargetKind::LogDir {
                 file_name: Some("entorno".into()),

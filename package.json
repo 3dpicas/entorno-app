@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "compilar": "npm run semilla && npm run build",
     "preview": "vite preview",
     "test": "vitest run",
     "tauri": "tauri",
@@ -14,6 +15,7 @@
   "devDependencies": {
     "@tauri-apps/cli": "^2.11.4",
     "jsdom": "^29.1.1",
+    "sharp": "^0.35.3",
     "vite": "^8.1.1",
     "vitest": "^4.1.10"
   },

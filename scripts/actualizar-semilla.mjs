@@ -6,8 +6,14 @@ const raiz = join(dirname(fileURLToPath(import.meta.url)), '..');
 const origen = join(raiz, '..', 'entorno-contenido');
 const destino = join(raiz, 'recursos', 'contenido-semilla');
 
+// En CI el repo de contenido no está como carpeta hermana: ahí vale la semilla
+// que ya viene commiteada. Sin repo y sin semilla sí es un error de verdad.
 if (!existsSync(origen)) {
-  console.error(`No existe ${origen}`);
+  if (existsSync(join(destino, 'manifest.json'))) {
+    console.log(`No existe ${origen}; se conserva la semilla ya commiteada`);
+    process.exit(0);
+  }
+  console.error(`No existe ${origen} y no hay semilla previa en ${destino}`);
   process.exit(1);
 }
 rmSync(destino, { recursive: true, force: true });
