@@ -29,7 +29,9 @@ pub fn validar_contenido(dir: &Path) -> Result<u64, String> {
         .map_err(|e| format!("no se puede leer manifest.json: {e}"))?;
     let v: serde_json::Value =
         serde_json::from_str(&texto).map_err(|e| format!("manifest.json inválido: {e}"))?;
-    let version = v["version"].as_u64().ok_or("manifest sin 'version' entera")?;
+    let version = v["version"]
+        .as_u64()
+        .ok_or("manifest sin 'version' entera")?;
     let secciones = v["secciones"]
         .as_array()
         .filter(|s| !s.is_empty())
@@ -161,27 +163,49 @@ pub fn estado_sync(app: tauri::AppHandle) -> EstadoSync {
         Ok(ruta) => {
             let meta = leer_meta(&ruta);
             EstadoSync {
-                estado: if meta.sha.is_empty() { "sin_datos".into() } else { "sin_cambios".into() },
+                estado: if meta.sha.is_empty() {
+                    "sin_datos".into()
+                } else {
+                    "sin_cambios".into()
+                },
                 sha: Some(meta.sha),
                 version: Some(meta.version),
                 fecha: Some(meta.fecha),
                 detalle: None,
             }
         }
-        Err(e) => EstadoSync { estado: "error".into(), sha: None, version: None, fecha: None, detalle: Some(e) },
+        Err(e) => EstadoSync {
+            estado: "error".into(),
+            sha: None,
+            version: None,
+            fecha: None,
+            detalle: Some(e),
+        },
     }
 }
 
 #[tauri::command]
 pub async fn sync_now(app: tauri::AppHandle) -> EstadoSync {
     if cfg!(debug_assertions) {
-        return EstadoSync { estado: "dev".into(), sha: None, version: None, fecha: None, detalle: Some("sync desactivado en dev".into()) };
+        return EstadoSync {
+            estado: "dev".into(),
+            sha: None,
+            version: None,
+            fecha: None,
+            detalle: Some("sync desactivado en dev".into()),
+        };
     }
     match sincronizar(&app).await {
         Ok(estado) => estado,
         Err(e) => {
             log::warn!("sync falló: {e}");
-            EstadoSync { estado: "error".into(), sha: None, version: None, fecha: None, detalle: Some(e) }
+            EstadoSync {
+                estado: "error".into(),
+                sha: None,
+                version: None,
+                fecha: None,
+                detalle: Some(e),
+            }
         }
     }
 }
@@ -195,12 +219,19 @@ async fn sincronizar(app: &tauri::AppHandle) -> Result<EstadoSync, String> {
     if sha == meta.sha {
         return Ok(EstadoSync {
             estado: "sin_cambios".into(),
-            sha: Some(sha), version: Some(meta.version), fecha: Some(meta.fecha), detalle: None,
+            sha: Some(sha),
+            version: Some(meta.version),
+            fecha: Some(meta.fecha),
+            detalle: None,
         });
     }
 
     let bytes = descargar_zip_remoto().await?;
-    let temporal = app.path().app_data_dir().map_err(|e| e.to_string())?.join("descarga_tmp");
+    let temporal = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| e.to_string())?
+        .join("descarga_tmp");
     if temporal.exists() {
         fs::remove_dir_all(&temporal).map_err(|e| e.to_string())?;
     }
@@ -214,11 +245,21 @@ async fn sincronizar(app: &tauri::AppHandle) -> Result<EstadoSync, String> {
     let _ = fs::remove_dir_all(&temporal);
 
     let fecha = chrono::Utc::now().to_rfc3339();
-    let nueva_meta = MetaContenido { sha: sha.clone(), version, fecha: fecha.clone() };
+    let nueva_meta = MetaContenido {
+        sha: sha.clone(),
+        version,
+        fecha: fecha.clone(),
+    };
     guardar_meta(&ruta_meta, &nueva_meta)?;
 
     log::info!("contenido actualizado a v{version} ({sha})");
-    Ok(EstadoSync { estado: "actualizado".into(), sha: Some(sha), version: Some(version), fecha: Some(fecha), detalle: None })
+    Ok(EstadoSync {
+        estado: "actualizado".into(),
+        sha: Some(sha),
+        version: Some(version),
+        fecha: Some(fecha),
+        detalle: None,
+    })
 }
 
 #[cfg(test)]
@@ -273,7 +314,10 @@ mod tests {
         fs::write(nuevo.join("marca.txt"), "nuevo").unwrap();
 
         reemplazar_contenido(&actual, &nuevo).unwrap();
-        assert_eq!(fs::read_to_string(actual.join("marca.txt")).unwrap(), "nuevo");
+        assert_eq!(
+            fs::read_to_string(actual.join("marca.txt")).unwrap(),
+            "nuevo"
+        );
         assert!(!base.path().join("contenido.old").exists());
     }
 
@@ -292,7 +336,11 @@ mod tests {
     fn meta_ida_y_vuelta() {
         let dir = tempfile::tempdir().unwrap();
         let ruta = dir.path().join("contenido_meta.json");
-        let meta = MetaContenido { sha: "abc123".into(), version: 7, fecha: "2026-07-26T10:00:00Z".into() };
+        let meta = MetaContenido {
+            sha: "abc123".into(),
+            version: 7,
+            fecha: "2026-07-26T10:00:00Z".into(),
+        };
         guardar_meta(&ruta, &meta).unwrap();
         let leida = leer_meta(&ruta);
         assert_eq!(leida.sha, "abc123");

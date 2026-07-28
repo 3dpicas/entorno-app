@@ -64,18 +64,25 @@ pub fn asegurar_contenido_inicial(app: &tauri::AppHandle) {
     #[cfg(not(debug_assertions))]
     {
         use tauri::Manager;
-        let Ok(destino) = dir_contenido(app) else { return };
+        let Ok(destino) = dir_contenido(app) else {
+            return;
+        };
         if destino.join("manifest.json").exists() {
             return;
         }
         // Tauri empaqueta los recursos declarados con `../` bajo `_up_/`. Se
         // prueban las dos rutas para no depender de esa convención.
-        let Ok(dir_recursos) = app.path().resource_dir() else { return };
+        let Ok(dir_recursos) = app.path().resource_dir() else {
+            return;
+        };
         let candidatas = [
             dir_recursos.join("_up_/recursos/contenido-semilla"),
             dir_recursos.join("recursos/contenido-semilla"),
         ];
-        let Some(semilla) = candidatas.iter().find(|p| p.join("manifest.json").is_file()) else {
+        let Some(semilla) = candidatas
+            .iter()
+            .find(|p| p.join("manifest.json").is_file())
+        else {
             log::warn!("no se encontró la semilla en {}", dir_recursos.display());
             return;
         };

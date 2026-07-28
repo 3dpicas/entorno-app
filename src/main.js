@@ -12,6 +12,9 @@ import { renderGuia } from './ui/guia.js';
 import { renderIndicador } from './ui/indicador.js';
 import { getVersion } from '@tauri-apps/api/app';
 import { renderAdmin } from './ui/admin.js';
+import { check } from '@tauri-apps/plugin-updater';
+import { relaunch } from '@tauri-apps/plugin-process';
+import { actualizarApp } from './lib/actualizacion.js';
 
 const SEIS_HORAS = 6 * 60 * 60 * 1000;
 
@@ -49,6 +52,10 @@ async function arrancar() {
   document.body.append(renderIndicador(await invoke('estado_sync').catch(() => ({}))));
   sincronizar();
   setInterval(sincronizar, SEIS_HORAS);
+
+  // Al final y a propósito: la interfaz ya está pintada. Si hay versión nueva
+  // la app se relanza sola en unos segundos; si no, no se nota nada.
+  actualizarApp({ comprobar: check, relanzar: relaunch });
 }
 
 async function sincronizar() {

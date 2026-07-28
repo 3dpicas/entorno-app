@@ -31,9 +31,18 @@
       }
     }
   },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDU3ODVGMTE5QzczRkY5NkEKUldScStUL0hHZkdGVi9KM1orVDZNeHpsZkQ3ZUdJOXRSRVZtZ0EwR0w0bS96OU1QWFNPekpNY2wK",
+      "endpoints": [
+        "https://github.com/3dpicas/entorno-app/releases/latest/download/latest.json"
+      ]
+    }
+  },
   "bundle": {
     "active": true,
     "targets": ["nsis"],
+    "createUpdaterArtifacts": true,
     "publisher": "marquib3l",
     "copyright": "© 2026 marquib3l",
     "shortDescription": "Entorno de Papá",
