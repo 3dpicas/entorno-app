@@ -30,7 +30,7 @@ async function arrancar() {
   registrarRuta(/^#\/seccion\/([a-z0-9-]+)$/, (id) => {
     const seccion = manifest.secciones.find((s) => s.id === id);
     if (!seccion) { navegarA('#/'); return document.createElement('div'); }
-    return renderSeccion(seccion, { alPulsarTarjeta, navegarA });
+    return renderSeccion(seccion, { alPulsarTarjeta, navegarA, resolverImagen: urlRecurso });
   });
   registrarRuta(/^#\/guia\/(.+)$/, (rutaCodificada) => {
     const contenedor = document.createElement('div');

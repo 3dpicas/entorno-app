@@ -1,4 +1,4 @@
-export function renderSeccion(seccion, { alPulsarTarjeta, navegarA }) {
+export function renderSeccion(seccion, { alPulsarTarjeta, navegarA, resolverImagen }) {
   const el = document.createElement('main');
   el.className = 'pantalla-seccion';
   el.style.setProperty('--color-seccion', seccion.color ?? '#455A64');
@@ -18,6 +18,18 @@ export function renderSeccion(seccion, { alPulsarTarjeta, navegarA }) {
       const boton = document.createElement('button');
       boton.className = 'tarjeta';
       boton.textContent = tarjeta.titulo;
+      // El icono es adorno: si falta, si no se puede resolver o si no carga, la
+      // tarjeta se queda con su texto y sigue funcionando igual.
+      if (tarjeta.icono && resolverImagen) {
+        const img = document.createElement('img');
+        img.className = 'icono-tarjeta';
+        img.alt = '';
+        img.addEventListener('error', () => img.remove(), { once: true });
+        resolverImagen(`iconos/${tarjeta.icono}`)
+          .then((url) => { img.src = url; })
+          .catch(() => img.remove());
+        boton.prepend(img);
+      }
       boton.addEventListener('click', () => alPulsarTarjeta(tarjeta));
       contenedor.append(boton);
     }

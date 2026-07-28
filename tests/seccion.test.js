@@ -37,4 +37,46 @@ describe('renderSeccion', () => {
     expect(el.querySelectorAll('button.tarjeta')).toHaveLength(1);
     expect(el.querySelectorAll('h2.titulo-grupo')).toHaveLength(0);
   });
+
+  it('tarjeta con icono pinta la imagen y conserva el título', async () => {
+    const conIcono = {
+      id: 'p', titulo: 'P',
+      tarjetas: [{ tipo: 'enlace', titulo: 'X', url: 'https://x.com', icono: 'x.png' }],
+    };
+    const resolverImagen = vi.fn(async () => 'asset://x.png');
+    const el = renderSeccion(conIcono, { alPulsarTarjeta: () => {}, navegarA: () => {}, resolverImagen });
+    await Promise.resolve();
+    expect(resolverImagen).toHaveBeenCalledWith('iconos/x.png');
+    expect(el.querySelector('img.icono-tarjeta')).toBeTruthy();
+    expect(el.querySelector('button.tarjeta').textContent).toContain('X');
+  });
+
+  it('tarjeta sin icono no pide ninguna imagen', () => {
+    const resolverImagen = vi.fn();
+    renderSeccion(conGrupos, { alPulsarTarjeta: () => {}, navegarA: () => {}, resolverImagen });
+    expect(resolverImagen).not.toHaveBeenCalled();
+  });
+
+  it('si el icono no carga, la imagen desaparece y la tarjeta sigue usable', async () => {
+    const conIcono = {
+      id: 'p', titulo: 'P',
+      tarjetas: [{ tipo: 'enlace', titulo: 'X', url: 'https://x.com', icono: 'roto.png' }],
+    };
+    const el = renderSeccion(conIcono, {
+      alPulsarTarjeta: () => {}, navegarA: () => {}, resolverImagen: async () => 'asset://roto.png',
+    });
+    await Promise.resolve();
+    const img = el.querySelector('img.icono-tarjeta');
+    img.dispatchEvent(new Event('error'));
+    expect(el.querySelector('img.icono-tarjeta')).toBeNull();
+    expect(el.querySelector('button.tarjeta').textContent).toContain('X');
+  });
+
+  it('tarjeta con icono pero sin resolverImagen no rompe el render', () => {
+    const conIcono = {
+      id: 'p', titulo: 'P',
+      tarjetas: [{ tipo: 'enlace', titulo: 'X', url: 'https://x.com', icono: 'x.png' }],
+    };
+    expect(() => renderSeccion(conIcono, { alPulsarTarjeta: () => {}, navegarA: () => {} })).not.toThrow();
+  });
 });

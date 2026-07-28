@@ -74,6 +74,13 @@ button:hover, button:focus-visible {
   border-left: 12px solid var(--color-seccion);
 }
 
+.icono-tarjeta {
+  width: 48px;
+  height: 48px;
+  margin-right: 16px;
+  vertical-align: middle;
+}
+
 .pantalla-guia { display: flex; flex-direction: column; min-height: 100vh; }
 .titulo-paso { font-size: var(--texto-grupo); margin: 24px 0; }
 .cuerpo-paso { flex: 1; font-size: var(--texto-base); line-height: 1.6; }
