@@ -90,3 +90,18 @@ button:hover, button:focus-visible {
   font-size: 16px;
   color: #999;
 }
+
+.panel-admin {
+  position: fixed;
+  inset: 5%;
+  z-index: 100;
+  background: #1E1E1E;
+  color: #DDD;
+  padding: 24px;
+  border-radius: var(--radio);
+  font-size: 16px;
+  overflow: auto;
+}
+.panel-admin pre { font-size: 14px; white-space: pre-wrap; }
+.log-admin { max-height: 40vh; overflow: auto; border: 1px solid #444; padding: 8px; margin: 16px 0; }
+.panel-admin button { min-height: 48px; margin-right: 16px; padding: 0 24px; font-size: 16px; }
