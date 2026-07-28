@@ -82,3 +82,11 @@ button:hover, button:focus-visible {
 .boton-anterior, .boton-siguiente { min-height: 100px; min-width: 260px; font-size: 32px; font-weight: 700; background: #fff; }
 .boton-siguiente { background: var(--color-seccion, #2E7D32); color: #fff; }
 .indicador-paso { font-size: 28px; color: #555; }
+
+.indicador-contenido {
+  position: fixed;
+  bottom: 8px;
+  right: 16px;
+  font-size: 16px;
+  color: #999;
+}
