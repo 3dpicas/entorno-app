@@ -11,6 +11,7 @@ node_modules
 dist
 dist-ssr
 *.local
+.worktrees/
 
 # Generado por scripts/generar-icono.mjs a partir de recursos/icono.svg
 recursos/icono.png
