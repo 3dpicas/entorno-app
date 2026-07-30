@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "Entorno de Papa",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "identifier": "com.marquibel.entorno",
   "build": {
     "frontendDist": "../dist",
