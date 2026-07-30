@@ -15,7 +15,7 @@ import { renderAdmin } from './ui/admin.js';
 import { check } from '@tauri-apps/plugin-updater';
 import { relaunch } from '@tauri-apps/plugin-process';
 import { actualizarApp } from './lib/actualizacion.js';
-import { crearRegistro } from './lib/registro.js';
+import { crearRegistro, registrarResultadoSync } from './lib/registro.js';
 
 const SEIS_HORAS = 6 * 60 * 60 * 1000;
 const registro = crearRegistro();
@@ -61,8 +61,10 @@ async function arrancar() {
 }
 
 async function sincronizar() {
+  await registro.info('[sync] inicio');
   try {
     const resultado = await invoke('sync_now');
+    await registrarResultadoSync(registro, resultado);
     if (resultado.estado === 'actualizado') {
       manifest = await cargarManifest();
       window.dispatchEvent(new HashChangeEvent('hashchange'));
@@ -71,7 +73,7 @@ async function sincronizar() {
     const estado = resultado.version ? resultado : await invoke('estado_sync');
     previo?.replaceWith(renderIndicador(estado));
   } catch (e) {
-    console.error('sync falló:', e);
+    await registro.error('[sync] error', e);
   }
 }
 

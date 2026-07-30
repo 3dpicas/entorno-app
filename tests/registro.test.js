@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { crearRegistro } from '../src/lib/registro.js';
+import { crearRegistro, registrarResultadoSync } from '../src/lib/registro.js';
 
 describe('crearRegistro', () => {
   it('envía mensajes informativos al nivel info', async () => {
@@ -54,5 +54,55 @@ describe('crearRegistro', () => {
 
     await expect(registro.info('mensaje')).resolves.toBeUndefined();
     await expect(registro.error('contexto', new Error('causa'))).resolves.toBeUndefined();
+  });
+});
+
+describe('registrarResultadoSync', () => {
+  function crearRegistroFalso() {
+    return {
+      info: vi.fn(async () => {}),
+      error: vi.fn(async () => {}),
+    };
+  }
+
+  it('registra que no hay cambios', async () => {
+    const registro = crearRegistroFalso();
+
+    await registrarResultadoSync(registro, { estado: 'sin_cambios' });
+
+    expect(registro.info).toHaveBeenCalledWith('[sync] sin cambios');
+  });
+
+  it('registra versión y primeros siete caracteres del SHA', async () => {
+    const registro = crearRegistroFalso();
+
+    await registrarResultadoSync(registro, {
+      estado: 'actualizado',
+      version: 6,
+      sha: '0872dc06d5b78dde',
+    });
+
+    expect(registro.info).toHaveBeenCalledWith(
+      '[sync] actualizado · versión 6 · SHA 0872dc0'
+    );
+  });
+
+  it('registra estado de error devuelto por Rust', async () => {
+    const registro = crearRegistroFalso();
+
+    await registrarResultadoSync(registro, {
+      estado: 'error',
+      detalle: 'GitHub no responde',
+    });
+
+    expect(registro.error).toHaveBeenCalledWith('[sync] error', 'GitHub no responde');
+  });
+
+  it('distingue sync desactivado en desarrollo', async () => {
+    const registro = crearRegistroFalso();
+
+    await registrarResultadoSync(registro, { estado: 'dev' });
+
+    expect(registro.info).toHaveBeenCalledWith('[sync] omitido en desarrollo');
   });
 });

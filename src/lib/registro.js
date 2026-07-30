@@ -31,3 +31,23 @@ export function crearRegistro({
     },
   };
 }
+
+export async function registrarResultadoSync(registro, resultado) {
+  if (resultado?.estado === 'error') {
+    await registro.error('[sync] error', resultado.detalle ?? 'error desconocido');
+    return;
+  }
+  if (resultado?.estado === 'actualizado') {
+    const version = resultado.version ?? 'desconocida';
+    const sha = typeof resultado.sha === 'string' && resultado.sha
+      ? resultado.sha.slice(0, 7)
+      : 'desconocido';
+    await registro.info(`[sync] actualizado · versión ${version} · SHA ${sha}`);
+    return;
+  }
+  if (resultado?.estado === 'dev') {
+    await registro.info('[sync] omitido en desarrollo');
+    return;
+  }
+  await registro.info('[sync] sin cambios');
+}
