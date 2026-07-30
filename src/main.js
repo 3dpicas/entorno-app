@@ -15,8 +15,10 @@ import { renderAdmin } from './ui/admin.js';
 import { check } from '@tauri-apps/plugin-updater';
 import { relaunch } from '@tauri-apps/plugin-process';
 import { actualizarApp } from './lib/actualizacion.js';
+import { crearRegistro } from './lib/registro.js';
 
 const SEIS_HORAS = 6 * 60 * 60 * 1000;
+const registro = crearRegistro();
 
 let manifest;
 
@@ -55,7 +57,7 @@ async function arrancar() {
 
   // Al final y a propósito: la interfaz ya está pintada. Si hay versión nueva
   // la app se relanza sola en unos segundos; si no, no se nota nada.
-  actualizarApp({ comprobar: check, relanzar: relaunch });
+  actualizarApp({ comprobar: check, relanzar: relaunch, registro });
 }
 
 async function sincronizar() {

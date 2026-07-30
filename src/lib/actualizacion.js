@@ -4,14 +4,19 @@
  * porque el padre no debe ver mensajes de error (spec §8). Las dependencias van
  * inyectadas para poder probarlo sin Tauri delante.
  */
-export async function actualizarApp({ comprobar, relanzar }) {
+export async function actualizarApp({ comprobar, relanzar, registro }) {
+  await registro.info('[updater] comprobación');
   try {
     const actualizacion = await comprobar();
-    if (!actualizacion) return;
-    console.info(`actualizando la app a ${actualizacion.version}`);
+    if (!actualizacion) {
+      await registro.info('[updater] sin actualización');
+      return;
+    }
+    await registro.info(`[updater] encontrada v${actualizacion.version}`);
     await actualizacion.downloadAndInstall();
+    await registro.info('[updater] instalada; relanzando');
     await relanzar();
   } catch (e) {
-    console.error('comprobación de actualización falló:', e);
+    await registro.error('[updater] error', e);
   }
 }
