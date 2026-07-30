@@ -55,6 +55,41 @@ describe('crearRegistro', () => {
     await expect(registro.info('mensaje')).resolves.toBeUndefined();
     await expect(registro.error('contexto', new Error('causa'))).resolves.toBeUndefined();
   });
+
+  it('absorbe causas cuyo getter de mensaje lanza', async () => {
+    const error = vi.fn(async () => {});
+    const registro = crearRegistro({ info: vi.fn(), error });
+    const causa = new Error('oculto');
+    Object.defineProperty(causa, 'message', {
+      get() { throw new Error('getter roto'); },
+    });
+
+    await expect(registro.error('[sync] error', causa)).resolves.toBeUndefined();
+
+    expect(error).toHaveBeenCalledWith('[sync] error · error desconocido');
+  });
+
+  it('mantiene cada entrada en una sola línea sin caracteres de control', async () => {
+    const error = vi.fn(async () => {});
+    const registro = crearRegistro({ info: vi.fn(), error });
+
+    await registro.error('[sync] error', 'fallo\r\n[INFO] falso\u0000');
+
+    expect(error).toHaveBeenCalledWith('[sync] error · fallo [INFO] falso');
+  });
+
+  it('oculta rutas locales Windows y UNC', async () => {
+    const error = vi.fn(async () => {});
+    const registro = crearRegistro({ info: vi.fn(), error });
+
+    await registro.error('[updater] error', 'fallo en C:\\Users\\papa\\secreto.txt');
+    await registro.error('[updater] error', 'fallo en \\\\servidor\\privado\\dato.txt');
+
+    expect(error.mock.calls).toEqual([
+      ['[updater] error · fallo en [ruta local]'],
+      ['[updater] error · fallo en [ruta local]'],
+    ]);
+  });
 });
 
 describe('registrarResultadoSync', () => {
