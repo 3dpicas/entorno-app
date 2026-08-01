@@ -1,8 +1,24 @@
 import { saludo } from '../lib/saludo.js';
 
-export function renderInicio(manifest, { navegarA }) {
+export function renderInicio(manifest, { navegarA, alBuscarInternet }) {
   const el = document.createElement('main');
   el.className = 'pantalla-inicio';
+
+  // Buscar no es una sección del manifest: va antes que nada y siempre en el
+  // mismo sitio, para que se encuentre sin leer el resto de la pantalla.
+  const botonBuscar = document.createElement('button');
+  botonBuscar.type = 'button';
+  botonBuscar.className = 'boton-buscar-internet';
+
+  const iconoBuscar = document.createElement('span');
+  iconoBuscar.setAttribute('aria-hidden', 'true');
+  iconoBuscar.textContent = '🔎';
+
+  const textoBuscar = document.createElement('span');
+  textoBuscar.textContent = 'BUSCAR EN INTERNET';
+
+  botonBuscar.append(iconoBuscar, textoBuscar);
+  botonBuscar.addEventListener('click', alBuscarInternet);
 
   const cabecera = document.createElement('header');
   const elSaludo = document.createElement('h1');
@@ -28,6 +44,6 @@ export function renderInicio(manifest, { navegarA }) {
     parrilla.append(boton);
   }
 
-  el.append(cabecera, parrilla);
+  el.append(botonBuscar, cabecera, parrilla);
   return el;
 }

@@ -28,13 +28,37 @@ button:hover, button:focus-visible {
   filter: brightness(1.05);
 }
 
+/* Pizarra a propósito: no es ninguna de las cuatro secciones (verde, azul,
+   naranja, púrpura), así que se lee como «esto es otra cosa». */
+.boton-buscar-internet {
+  --color-seccion: #102027;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 88px;
+  margin-bottom: 24px;
+  padding: 0 32px;
+  font-size: 28px;
+  font-weight: 800;
+  color: #fff;
+  background: #37474F;
+}
+
 .pantalla-inicio header { text-align: center; margin-bottom: 48px; }
 .reloj { font-size: var(--texto-grupo); color: #555; }
 
+/* Dos columnas hasta que caben cuatro de verdad: con auto-fit salían tres
+   columnas y una sección suelta debajo. */
 .parrilla-secciones {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 32px;
+}
+
+@media (min-width: 1600px) {
+  .parrilla-secciones {
+    grid-template-columns: repeat(4, minmax(280px, 1fr));
+  }
 }
 
 .tarjeta-seccion {
