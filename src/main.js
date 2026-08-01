@@ -16,6 +16,7 @@ import { check } from '@tauri-apps/plugin-updater';
 import { relaunch } from '@tauri-apps/plugin-process';
 import { actualizarApp } from './lib/actualizacion.js';
 import { crearRegistro, registrarResultadoSync } from './lib/registro.js';
+import { abrirBusquedaInternet } from './lib/busqueda.js';
 
 const SEIS_HORAS = 6 * 60 * 60 * 1000;
 const registro = crearRegistro();
@@ -24,11 +25,17 @@ let manifest;
 
 const alPulsarTarjeta = (tarjeta) => ejecutarTarjeta(tarjeta, { abrirUrl: openUrl, navegarA });
 
+const alBuscarInternet = () => abrirBusquedaInternet({
+  invocar: invoke,
+  abrirUrl: openUrl,
+  registro,
+});
+
 async function arrancar() {
   manifest = await cargarManifest();
   const raiz = document.querySelector('#app');
 
-  registrarRuta(/^#\/$/, () => renderInicio(manifest, { navegarA }));
+  registrarRuta(/^#\/$/, () => renderInicio(manifest, { navegarA, alBuscarInternet }));
   registrarRuta(/^#\/seccion\/([a-z0-9-]+)$/, (id) => {
     const seccion = manifest.secciones.find((s) => s.id === id);
     if (!seccion) { navegarA('#/'); return document.createElement('div'); }
