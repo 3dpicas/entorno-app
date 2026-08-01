@@ -1,6 +1,6 @@
 [package]
 name = "entorno-papa"
-version = "0.1.3"
+version = "0.1.4"
 description = "Entorno de Papá: panel con guías, prensa y juegos"
 authors = ["marquib3l <marquib3l@gmail.com>"]
 license = ""
