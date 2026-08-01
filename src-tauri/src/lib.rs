@@ -1,3 +1,4 @@
+mod busqueda;
 mod config;
 mod contenido;
 mod sync;
@@ -55,6 +56,7 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            busqueda::abrir_busqueda_brave,
             contenido::contenido_leer,
             contenido::contenido_ruta,
             sync::sync_now,
